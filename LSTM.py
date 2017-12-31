@@ -42,17 +42,20 @@ def main():
     seq = tokenizer.texts_to_sequences(tokenized_text_list)
 
     # Define training data
-    Y = np.array(df.Label.map(score))
+    Y = np.array(df.Label.map(score).values).reshape((Y.shape[0],1))
     X = sequence.pad_sequences(seq, maxlen=400)
 
     # model parameters
     in_out_neurons = 1
-    hidden_neurons = 200
+    hidden_neurons = 250
 
     # Define LSTM model
     model = Sequential()
     model.add(embedding_layer)
-    model.add(LSTM(hidden_neurons))
+    model.add(LSTM(hidden_neurons,
+                   return_sequences=False,
+                   activation='tanh',
+                   inner_activation='sigmoid'))
     model.add(Dense(in_out_neurons))
     model.add(Activation("linear"))
 
@@ -60,7 +63,7 @@ def main():
     model.compile(loss='mse', optimizer='adam', metrics=['mse'])
 
     # fit model
-    model.fit(X, Y, nb_epoch=10)
+    model.fit(X, Y, nb_epoch=50)
 
     # save model
     model.save('LSTM.h5')
