@@ -55,7 +55,9 @@ def main():
     model.add(LSTM(hidden_neurons,
                    return_sequences=False,
                    activation='tanh',
-                   inner_activation='sigmoid'))
+                   inner_activation='sigmoid',
+                   dropout_U=0.3,
+                   dropout_W=0.3))
     model.add(Dense(in_out_neurons))
     model.add(Activation("linear"))
 
