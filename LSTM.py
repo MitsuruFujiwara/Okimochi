@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import sqlite3
+import matplotlib.pyplot as plt
 import MeCab
 
 from gensim.models.keyedvectors import KeyedVectors
@@ -12,6 +13,7 @@ from keras.layers.recurrent import LSTM
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing import sequence
 from keras.models import Sequential
+
 
 mc = MeCab.Tagger("-Owakati")
 
@@ -80,7 +82,7 @@ def main():
     history = model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
     # fit model
-    model.fit(X, Y, nb_epoch=1, validation_data=(X_val, Y_val))
+    model.fit(X, Y, nb_epoch=20, validation_data=(X_val, Y_val))
 
     # save model
     model.save('LSTM.h5')
