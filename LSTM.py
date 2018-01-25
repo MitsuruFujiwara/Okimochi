@@ -14,6 +14,7 @@ from keras.preprocessing.text import Tokenizer
 from keras.preprocessing import sequence
 from keras.models import Sequential
 
+from sklearn.cross_validation import train_test_split
 
 mc = MeCab.Tagger("-Owakati")
 
@@ -31,14 +32,14 @@ def main():
 
     # Load Dataset
     conn = sqlite3.connect("data.db")
-    conn_val = sqlite3.connect('data20180112.db')
+#    conn_val = sqlite3.connect('data20180112.db')
 
     df = pd.read_sql('select * from data', conn)
-    df_val = pd.read_sql('select * from data', conn_val)
+#    df_val = pd.read_sql('select * from data', conn_val)
 
     # drop score = 0 data
     df = df[df['Label'] != '□']
-    df_val = df_val[df_val['Label'] != '□']
+#    df_val = df_val[df_val['Label'] != '□']
 
     # Convert label to score
     score = {'○':1,'▲':0, '×':0, '◎':1}
@@ -46,21 +47,23 @@ def main():
     # Get tokenized text list
     print("tokenizing texts...")
     tokenized_text_list = [tokenize(texts) for texts in df.Comment]
-    tokenized_text_list_val = [tokenize(texts) for texts in df_val.Comment]
+#    tokenized_text_list_val = [tokenize(texts) for texts in df_val.Comment]
 
     tokenizer = Tokenizer()
     tokenizer.fit_on_texts(tokenized_text_list)
     seq = tokenizer.texts_to_sequences(tokenized_text_list)
-    seq_val = tokenizer.texts_to_sequences(tokenized_text_list_val)
+#    seq_val = tokenizer.texts_to_sequences(tokenized_text_list_val)
 
     # Define training data
     Y = np.array(df.Label.map(score).values)
     Y = np.reshape(Y, (Y.shape[0],1))
-    Y_val = np.array(df_val.Label.map(score).values)
-    Y_val = np.reshape(Y_val, (Y_val.shape[0],1))
+#    Y_val = np.array(df_val.Label.map(score).values)
+#    Y_val = np.reshape(Y_val, (Y_val.shape[0],1))
 
     X = sequence.pad_sequences(seq, maxlen=400)
-    X_val = sequence.pad_sequences(seq_val, maxlen=400)
+#    X_val = sequence.pad_sequences(seq_val, maxlen=400)
+
+    trX, valX, trY, valY = train_test_split(X, Y, test_size=0.1, random_state=0)
 
     # model parameters
     in_out_neurons = 1
@@ -82,7 +85,7 @@ def main():
     history = model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
     # fit model
-    model.fit(X, Y, nb_epoch=20, validation_data=(X_val, Y_val))
+    history = model.fit(trX, trY, nb_epoch=30, validation_data=(valX, valY))
 
     # save model
     model.save('LSTM.h5')
